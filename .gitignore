@@ -4,3 +4,4 @@ assets/**
 bin/**
 target/**
 **/*.csv
+**/*.jar
