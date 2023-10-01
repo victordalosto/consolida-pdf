@@ -29,6 +29,7 @@ public class ArquivoService {
 
 
     public void salvaArquivo(String nomeArquivo, StringBuffer sb) {
+        Paths.get(diretorioRaiz).toFile().mkdirs();
         if (sb == null || sb.length() == 0)
             return;
         salvaStringEmArquivoCSV(nomeArquivo, sb);
@@ -39,7 +40,7 @@ public class ArquivoService {
 
 
     private void salvaStringEmArquivoCSV(String nome, StringBuffer sb) {
-        File file = Paths.get(diretorioRaiz, "Resultados", nome).toFile();
+        File file = Paths.get(diretorioRaiz, nome).toFile();
         String originalFileName = file.getName();
         if (!originalFileName.endsWith(".csv")) {
             originalFileName += ".csv";
@@ -60,7 +61,7 @@ public class ArquivoService {
                 break; // Successfully saved the file, exit the loop
             } catch (IOException e) {
                 attempts++;
-                System.out.println("Nao foi possivel salvar o consolidador (" + attempts + "ª tentativa): " + e.getMessage());
+                System.out.println(" Nao foi possivel salvar o consolidador (" + attempts + "ª tentativa): " + e.getMessage());
                 // Modify the file name for the next attempt
                 String fileNameWithoutExtension = originalFileName.replace(".csv", "");
                 originalFileName = fileNameWithoutExtension + "_" + attempts + ".csv";
