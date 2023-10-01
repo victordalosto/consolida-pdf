@@ -1,11 +1,11 @@
 package dalosto.pdfmanager;
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.Paths;
 import java.util.List;
 import dalosto.pdfmanager.helper.ArquivoProxy;
 import dalosto.pdfmanager.helper.ArquivoService;
 import dalosto.pdfmanager.helper.PropertiesService;
+import dalosto.pdfmanager.model.FileBuffer;
 import dalosto.pdfmanager.model.PdfModel;
 import dalosto.pdfmanager.service.PdfService;
 
@@ -14,7 +14,7 @@ import dalosto.pdfmanager.service.PdfService;
 public class App {
 
     private static String dirEntrada;
-    private static String dirSaida;
+    private static String arquivoSaida;
     private static PropertiesService props;
     private static ArquivoProxy arquivoProxy;
     private static ArquivoService arquivoService;
@@ -26,35 +26,41 @@ public class App {
 
         System.out.print("\n Bootstrap.. ");
         bootStrap();
-        System.out.println("ok");
+        System.out.println("ok\n");
 
         System.out.println(" Iniciando processo..");
+
+
         System.out.println("  - Buscando PDFs em: " + dirEntrada);
-
         List<Path> arquivosPDF = arquivoService.getInDirectoryListArquivosQueTemNoNome(dirEntrada, ".pdf");
-        System.out.println("  - Arquivos PDF encontrados: " + arquivosPDF.size());
+        if (arquivosPDF == null || arquivosPDF.isEmpty()) {
+            System.out.println("  - Nenhum arquivo PDF encontrado em: " + dirEntrada + "\n");
+            return;
+        }
+        System.out.println("  - Arquivos PDF encontrados: " + arquivosPDF.size() + "\n");
 
 
-        List<PdfModel> pdfs = new ArrayList<>();
+        System.out.println("  - Processando arquivos.. ");
+        FileBuffer fileBuffer = new FileBuffer(PdfModel.getHeader());
         for (Path arquivoPDF : arquivosPDF) {
             System.out.print("  - Processando arquivo: " + arquivoPDF.getFileName() + "  .. ");
-            PdfModel pdf = pdfService.getPdf(arquivoPDF);
-            pdfs.add(pdf);
-            System.out.println("ok");
+            try {
+                PdfModel pdf = pdfService.getPdf(arquivoPDF);
+                fileBuffer.append(pdf);
+                System.out.println("ok");
+            } catch (Exception e) {
+                System.out.println("erro");
+                System.out.println("    - " + e.getMessage());
+                fileBuffer.add(arquivoPDF.getFileName() + ";" + "ERRO no momento de processar: " + e.getMessage());
+            }
         }
 
 
-        StringBuffer sb = new StringBuffer();
-        sb.append(PdfModel.getHeader()+"\n");
-        for (PdfModel pdf : pdfs) {
-            sb.append(pdf.toString()+"\n");
-        }
-
-        System.out.println("  - Gerando arquivo consolidado.. ");
-        arquivoService.salvaArquivo("Consolidado-pdfs", sb);
+        System.out.println(" Gerando arquivo consolidado.. ");
+        arquivoService.salvaArquivo(Paths.get(arquivoSaida), fileBuffer.getText());
 
 
-        System.out.println("\n ************ FIM ********** ");
+        System.out.println("\n ************ CONCLUIDO ********** \n\n");
 
 
     }
@@ -63,12 +69,20 @@ public class App {
 
 
 
-    private static void bootStrap() throws IOException {
-        props = new PropertiesService("configuracoes.properties");
-        dirEntrada = props.getStringParam("diretorio_entrada");
-        dirSaida = props.getStringParam("diretorio_saida");
-        arquivoProxy = new ArquivoProxy();
-        arquivoService = new ArquivoService(dirSaida, arquivoProxy);
-        pdfService = new PdfService();
+    private static void bootStrap() {
+        try {
+            props = new PropertiesService("configuracoes.properties");
+
+            dirEntrada = props.getStringParam("diretorio_entrada");
+            arquivoSaida = props.getStringParam("arquivo_saida");
+
+            arquivoProxy = new ArquivoProxy();
+            arquivoService = new ArquivoService(arquivoProxy);
+
+            pdfService = new PdfService();
+
+        } catch (Exception e) {
+
+        }
     }
 }

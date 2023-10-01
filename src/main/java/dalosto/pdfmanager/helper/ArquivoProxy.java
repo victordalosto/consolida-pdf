@@ -19,9 +19,15 @@ public class ArquivoProxy {
         if (!filesCache.containsKey(directory)) {
             try {
                 List<Path> arquivos = new ArrayList<Path>();
+                if (!Files.exists(Paths.get(directory))) {
+                    return null;
+                }
                 Files.walk(Paths.get(directory))
                         .filter(Files::isRegularFile)
                         .forEach(arquivos::add);
+                if (arquivos.isEmpty()) {
+                    return null;
+                }
                 filesCache.put(directory, arquivos);
             } catch (IOException e) {
                 e.printStackTrace();

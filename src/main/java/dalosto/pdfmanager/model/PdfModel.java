@@ -35,15 +35,9 @@ public class PdfModel {
 
 
 
-    public PdfModel(String fileName, String texto) {
+    public PdfModel(String fileName, String pdfTEXT) {
+        List<String> resultList = Arrays.asList(pdfTEXT.split(System.lineSeparator()));
         this.nome = fileName;
-
-        List<String> resultList = Arrays.asList(texto.split(System.lineSeparator()));
-
-        if (resultList.size() <= 60 || resultList.size() >= 70) {
-            throw new RuntimeException("\nArquivo Pdf com um formato diferente: " + fileName);
-        }
-
         atribuiNumeroNota(resultList);
         this.precoInicial = buscaTextoNaList(resultList, "PREÇOS INICIAIS:");
         this.reajustamento = buscaTextoNaList(resultList, "REAJUSTAMENTO:");
@@ -61,7 +55,6 @@ public class PdfModel {
             throw new RuntimeException("\nErro na hora de buscar o valor " + "Nº:" + " na linha " + text + " do arquivo " + this.nome);
         }
         this.numeroNota = text.substring(text.indexOf("Nº:") + 3).trim();
-
     }
 
 
@@ -84,14 +77,12 @@ public class PdfModel {
 
 
 
-    private String buscaTextoNaList(List<String> list, String contains) {
-        int count = 0;
+    private String buscaTextoNaList(List<String> listString, String contains) {
         String expected = "null";
-        for (String s : list) {
+        for (String s : listString) {
             if (s != null && s.contains(contains)) {
-                count++;
                 if (!expected.equals("null") && !s.equals(expected)) { // Apenas para garantir que o valor buscado é o mesmo em todas as linhas
-                    throw new RuntimeException("\nErro na hora de buscar o valor " + contains + " na linha " + expected + " do arquivo " + this.nome);
+                    throw new RuntimeException("\nExistem valores duplicados e diferentes de " + contains + " no arquivo " + this.nome);
                 }
                 expected = s;
             }

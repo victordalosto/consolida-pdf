@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -12,13 +11,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ArquivoService {
 
-    private final String diretorioRaiz;
     private final ArquivoProxy proxy;
 
 
-    public List<Path> getInDirectoryListArquivosQueTemNoNome(String directory, String fileName) throws IOException {
-        var list = proxy.getFilesInDirectory(directory);
-        if (list == null) {
+    public List<Path> getInDirectoryListArquivosQueTemNoNome(String directory, String fileName) {
+        List<Path> list = proxy.getFilesInDirectory(directory);
+        if (list == null || list.isEmpty()) {
             return null;
         }
         return list.stream()
@@ -28,26 +26,19 @@ public class ArquivoService {
 
 
 
-    public void salvaArquivo(String nomeArquivo, StringBuffer sb) {
-        Paths.get(diretorioRaiz).toFile().mkdirs();
-        if (sb == null || sb.length() == 0)
-            return;
-        salvaStringEmArquivoCSV(nomeArquivo, sb);
-    }
-
-
-
-
-
-    private void salvaStringEmArquivoCSV(String nome, StringBuffer sb) {
-        File file = Paths.get(diretorioRaiz, nome).toFile();
-        String originalFileName = file.getName();
-        if (!originalFileName.endsWith(".csv")) {
-            originalFileName += ".csv";
-            file = new File(file.getParentFile(), originalFileName);
+    public void salvaArquivo(Path arquivoFQP, String text) {
+        if (arquivoFQP == null || text == null || text.isBlank()) {
+            throw new RuntimeException(" Nao foi possivel salvar o arquivo: " + arquivoFQP);
         }
 
+        File dir = arquivoFQP.toFile().getParentFile();
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        File file = arquivoFQP.toFile();
         int attempts = 0;
+
         while (attempts < 3) {
             try {
                 if (file.exists()) {
@@ -55,19 +46,17 @@ public class ArquivoService {
                 }
 
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                    System.out.println("..Salvando arquivo: " + file.getAbsolutePath());
-                    writer.write(sb.toString());
+                    System.out.println(" Salvando arquivo em: " + file.getAbsolutePath());
+                    writer.write(text);
                 }
-                break; // Successfully saved the file, exit the loop
+
+                break;
             } catch (IOException e) {
                 attempts++;
                 System.out.println(" Nao foi possivel salvar o consolidador (" + attempts + "ª tentativa): " + e.getMessage());
-                // Modify the file name for the next attempt
-                String fileNameWithoutExtension = originalFileName.replace(".csv", "");
-                originalFileName = fileNameWithoutExtension + "_" + attempts + ".csv";
-                file = new File(file.getParentFile(), originalFileName);
             }
         }
     }
+
 
 }
