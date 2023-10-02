@@ -40,8 +40,8 @@ echo  ########################################
 if %errorlevel% neq 0 (
     echo  # ERRO
     echo  # ERRO AO TENTAR ATUALIZAR ARQUIVO
+    echo  # ERRO
 ) else (
-    ren consolidador.jar app.jar
     echo  # ARQUIVOS ATUALIZADOS COM SUCESSO
 )
 echo  ########################################

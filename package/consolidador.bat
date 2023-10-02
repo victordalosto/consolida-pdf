@@ -5,7 +5,7 @@ setlocal
 
 cd build
 
-java -jar app.jar
+java -jar consolidador.jar
 
 pause
 
