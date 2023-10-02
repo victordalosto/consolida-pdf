@@ -1,12 +1,11 @@
-@REM Consolidador
-@REM Este arquivo é utilizado para executar o consolidador
+@REM Executavel da aplicacao
 
 @echo off
 setlocal
 
 cd build
 
-java -jar consolidador.jar
+java -jar app.jar
 
 pause
 
